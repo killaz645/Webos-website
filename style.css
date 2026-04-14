@@ -1,0 +1,565 @@
+/* =====================
+   CSS Variables
+   ===================== */
+:root {
+  --cream: #FAF8F3;
+  --cream-mid: #F3EDE3;
+  --cream-dark: #E8E0D5;
+  --brown-dark: #3D2B1F;
+  --brown-mid: #7A6A5F;
+  --brown-light: #C9B8A8;
+  --accent: #8B5E3C;
+  --accent-dark: #6B4429;
+  --accent-light: #F0E6DA;
+  --tip-bg: #FEF7E8;
+  --tip-border: #E0A843;
+  --warn-bg: #FEF0F0;
+  --warn-border: #D95050;
+  --code-bg: #1E1E1E;
+  --code-text: #A8D1A8;
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Fraunces', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* =====================
+   Base
+   ===================== */
+body {
+  font-family: var(--font-body);
+  background-color: var(--cream);
+  color: var(--brown-dark);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--brown-dark);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-dark);
+}
+
+/* =====================
+   Navbar
+   ===================== */
+.site-nav {
+  background-color: var(--cream);
+  border-bottom: 1px solid var(--cream-dark);
+  padding: 14px 0;
+}
+
+.site-nav .navbar-brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--brown-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-icon {
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.site-nav .nav-link {
+  font-size: 0.9rem;
+  color: var(--brown-mid);
+  padding: 6px 14px !important;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.site-nav .nav-link:hover,
+.site-nav .nav-link.active {
+  background-color: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.navbar-toggler {
+  border-color: var(--cream-dark);
+}
+
+/* =====================
+   Hero Section
+   ===================== */
+.hero-section {
+  background-color: var(--cream-mid);
+  border-bottom: 1px solid var(--cream-dark);
+  padding: 80px 0 72px;
+}
+
+.guide-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-light);
+  border-radius: 4px;
+  padding: 4px 10px;
+  margin-bottom: 18px;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  margin-bottom: 20px;
+  color: var(--brown-dark);
+}
+
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--brown-mid);
+  max-width: 480px;
+  margin-bottom: 32px;
+}
+
+.btn-primary-custom {
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-primary-custom:hover {
+  background-color: var(--accent-dark);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Hero graphic */
+.hero-graphic {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  margin: 0 auto;
+}
+
+.graphic-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid var(--cream-dark);
+}
+
+.ring-1 { width: 280px; height: 280px; top: 0; left: 0; }
+.ring-2 { width: 200px; height: 200px; top: 40px; left: 40px; border-color: var(--brown-light); }
+.ring-3 { width: 120px; height: 120px; top: 80px; left: 80px; border-color: var(--accent); border-width: 2px; }
+
+.graphic-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--accent);
+  color: #fff;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+/* =====================
+   Steps Section
+   ===================== */
+.steps-section {
+  padding: 72px 0;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 32px;
+}
+
+.step-card {
+  display: block;
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 12px;
+  padding: 28px 24px;
+  height: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(61,43,31,0.05);
+  color: var(--brown-dark);
+  text-decoration: none;
+}
+
+.step-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 6px 20px rgba(139,94,60,0.12);
+  transform: translateY(-2px);
+  color: var(--brown-dark);
+}
+
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-light);
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.step-desc {
+  font-size: 0.9rem;
+  color: var(--brown-mid);
+  margin-bottom: 16px;
+  line-height: 1.65;
+}
+
+.step-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* =====================
+   Prerequisites Section
+   ===================== */
+.prereq-section {
+  background: var(--cream-mid);
+  border-top: 1px solid var(--cream-dark);
+  border-bottom: 1px solid var(--cream-dark);
+  padding: 72px 0;
+}
+
+.prereq-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.prereq-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cream-dark);
+  font-size: 0.95rem;
+  color: var(--brown-mid);
+  padding-left: 20px;
+  position: relative;
+}
+
+.prereq-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.time-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.time-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+}
+
+.time-step { color: var(--brown-mid); }
+.time-val {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+
+/* =====================
+   Footer
+   ===================== */
+.site-footer {
+  background: var(--cream-mid);
+  border-top: 1px solid var(--cream-dark);
+  padding: 24px 0;
+  font-size: 0.88rem;
+  color: var(--brown-mid);
+  text-align: center;
+}
+
+/* =====================
+   Guide Pages (sidebar layout)
+   ===================== */
+.guide-layout {
+  display: flex;
+  min-height: calc(100vh - 130px);
+}
+
+.guide-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--cream-mid);
+  border-right: 1px solid var(--cream-dark);
+  padding: 32px 20px;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.sidebar-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brown-light);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li a {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--brown-mid);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+.sidebar-nav li a:hover,
+.sidebar-nav li a.active {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  border-left-color: var(--accent);
+}
+
+.guide-content {
+  flex: 1;
+  padding: 48px 56px;
+  max-width: 780px;
+}
+
+.guide-page-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.guide-page-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.guide-page-intro {
+  font-size: 1rem;
+  color: var(--brown-mid);
+  margin-bottom: 48px;
+  max-width: 560px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+/* Step blocks */
+.step-block {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.step-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.step-body {}
+
+.step-body h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--brown-dark);
+}
+
+.step-body p {
+  font-size: 0.95rem;
+  color: var(--brown-mid);
+  margin-bottom: 14px;
+}
+
+/* Code blocks */
+pre {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 12px 0 16px;
+  overflow-x: auto;
+}
+
+pre code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--code-text);
+  background: none;
+  padding: 0;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Callouts */
+.callout {
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+
+.callout-title {
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.callout-tip {
+  background: var(--tip-bg);
+  border-left: 3px solid var(--tip-border);
+  color: #7A5A2A;
+}
+
+.callout-tip .callout-title { color: #A07830; }
+
+.callout-warn {
+  background: var(--warn-bg);
+  border-left: 3px solid var(--warn-border);
+  color: #7A2A2A;
+}
+
+.callout-warn .callout-title { color: #C04040; }
+
+/* Step divider */
+.step-divider {
+  border: none;
+  border-top: 1px solid var(--cream-dark);
+  margin: 40px 0;
+}
+
+/* Pagination nav */
+.guide-pagination {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid var(--cream-dark);
+}
+
+.guide-pagination a {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--accent);
+  padding: 10px 20px;
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.guide-pagination a:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+
+/* =====================
+   Responsive
+   ===================== */
+@media (max-width: 768px) {
+  .guide-layout {
+    flex-direction: column;
+  }
+
+  .guide-sidebar {
+    width: 100%;
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--cream-dark);
+    padding: 20px 16px;
+  }
+
+  .guide-content {
+    padding: 32px 20px;
+  }
+
+  .hero-section {
+    padding: 48px 0;
+  }
+}

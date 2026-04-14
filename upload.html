@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Your Website — ServerGuide</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top site-nav">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <span class="brand-icon">⬡</span> ServerGuide
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="ventoy.html">Ventoy</a></li>
+          <li class="nav-item"><a class="nav-link" href="ubuntu.html">Ubuntu Server</a></li>
+          <li class="nav-item"><a class="nav-link" href="aapanel.html">aaPanel</a></li>
+          <li class="nav-item"><a class="nav-link active" href="upload.html">Upload Site</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="guide-layout">
+
+    <!-- Sidebar -->
+    <aside class="guide-sidebar">
+      <span class="sidebar-label">On this page</span>
+      <ul class="sidebar-nav">
+        <li><a href="#methods" class="active">Upload Methods</a></li>
+        <li><a href="#file-manager">aaPanel File Manager</a></li>
+        <li><a href="#sftp">Upload via SFTP</a></li>
+        <li><a href="#permissions">File Permissions</a></li>
+        <li><a href="#test">Test Your Site</a></li>
+        <li><a href="#ssl">Enable HTTPS (SSL)</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="guide-content">
+      <span class="guide-page-label">Step 04</span>
+      <h1 class="guide-page-title">Upload Your Website</h1>
+      <p class="guide-page-intro">With aaPanel configured and your site created, you're ready to upload your website files and go live. There are two main ways to do this — the aaPanel file manager and SFTP. This step takes around 15 minutes.</p>
+
+      <!-- Step 1 -->
+      <div class="step-block" id="methods">
+        <div class="step-badge">1</div>
+        <div class="step-body">
+          <h3>Choosing an Upload Method</h3>
+          <p>You have two main options for getting your files onto the server:</p>
+          <ul style="color: var(--brown-mid); font-size: 0.95rem; padding-left: 1.2rem; margin-bottom: 12px;">
+            <li><strong>aaPanel File Manager</strong> — good for small uploads or quick edits directly in the browser</li>
+            <li><strong>SFTP client</strong> — better for larger sites, drag-and-drop uploads, and ongoing file management</li>
+          </ul>
+          <div class="callout callout-tip">
+            <div class="callout-title">Tip</div>
+            For most projects, using an SFTP client like FileZilla is the most comfortable long-term workflow. It feels like copying files on your own computer.
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 2 -->
+      <div class="step-block" id="file-manager">
+        <div class="step-badge">2</div>
+        <div class="step-body">
+          <h3>Upload via aaPanel File Manager</h3>
+          <p>In aaPanel, click <strong>Files</strong> in the left sidebar. Navigate to your site's root directory:</p>
+          <pre><code>/www/wwwroot/your-domain.com</code></pre>
+          <p>Click the <strong>Upload</strong> button in the toolbar. You can upload individual files or a <code>.zip</code> archive. If you upload a zip, right-click it afterwards and select <strong>Decompress</strong> to extract it in place.</p>
+          <div class="callout callout-warn">
+            <div class="callout-title">Warning</div>
+            Make sure to delete or replace the default <code>index.html</code> placeholder file that aaPanel creates when you set up the site, otherwise it will appear instead of your website.
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 3 -->
+      <div class="step-block" id="sftp">
+        <div class="step-badge">3</div>
+        <div class="step-body">
+          <h3>Upload via SFTP</h3>
+          <p>Download and install <a href="https://filezilla-project.org/" target="_blank">FileZilla</a> (free) on your main computer. Open it and connect using the following settings:</p>
+          <ul style="color: var(--brown-mid); font-size: 0.95rem; padding-left: 1.2rem; margin-bottom: 12px;">
+            <li><strong>Host:</strong> your server's IP address</li>
+            <li><strong>Username:</strong> your Ubuntu server username</li>
+            <li><strong>Password:</strong> your Ubuntu server password</li>
+            <li><strong>Port:</strong> <code>22</code></li>
+          </ul>
+          <p>Once connected, navigate on the right panel to your site directory and drag your local files across:</p>
+          <pre><code>/www/wwwroot/your-domain.com/</code></pre>
+          <div class="callout callout-tip">
+            <div class="callout-title">Tip</div>
+            You can also use the command-line <code>scp</code> tool to copy files to your server if you prefer not to install a GUI application:
+          </div>
+          <pre><code>scp -r ./my-website/* username@your-server-ip:/www/wwwroot/your-domain.com/</code></pre>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 4 -->
+      <div class="step-block" id="permissions">
+        <div class="step-badge">4</div>
+        <div class="step-body">
+          <h3>Fix File Permissions</h3>
+          <p>After uploading, make sure the web server can read your files. SSH into your server and run:</p>
+          <pre><code>sudo chown -R www:www /www/wwwroot/your-domain.com
+sudo find /www/wwwroot/your-domain.com -type f -exec chmod 644 {} \;
+sudo find /www/wwwroot/your-domain.com -type d -exec chmod 755 {} \;</code></pre>
+          <p>This sets the correct owner and permissions so Nginx can serve your files properly.</p>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 5 -->
+      <div class="step-block" id="test">
+        <div class="step-badge">5</div>
+        <div class="step-body">
+          <h3>Test Your Site</h3>
+          <p>Open a browser and navigate to your server's IP address or domain name. You should see your website load.</p>
+          <p>If you see a blank page or an error, check the Nginx error log in aaPanel under <strong>Website → your site → Error log</strong>, or via the terminal:</p>
+          <pre><code>sudo tail -f /www/wwwlogs/your-domain.com.error.log</code></pre>
+          <div class="callout callout-tip">
+            <div class="callout-title">Tip</div>
+            Common issues are wrong file permissions, a missing <code>index.html</code> in the root directory, or a typo in the domain name configuration.
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 6 -->
+      <div class="step-block" id="ssl">
+        <div class="step-badge">6</div>
+        <div class="step-body">
+          <h3>Enable HTTPS with a Free SSL Certificate</h3>
+          <p>To serve your site over HTTPS, aaPanel makes it easy with Let's Encrypt. In the aaPanel dashboard, go to <strong>Website</strong>, click on your site, then open the <strong>SSL</strong> tab.</p>
+          <p>Select <strong>Let's Encrypt</strong>, enter your domain's email address, and click <strong>Apply</strong>. aaPanel will automatically obtain and install a free SSL certificate and configure Nginx to redirect HTTP to HTTPS.</p>
+          <div class="callout callout-warn">
+            <div class="callout-title">Warning</div>
+            Let's Encrypt only works with a real domain name pointed at your server's public IP. It won't work with a bare IP address or a local network address.
+          </div>
+          <div class="callout callout-tip">
+            <div class="callout-title">Tip</div>
+            aaPanel automatically renews Let's Encrypt certificates before they expire. You don't need to do anything to keep HTTPS working.
+          </div>
+        </div>
+      </div>
+
+      <!-- All done -->
+      <div style="background: var(--accent-light); border: 1px solid var(--cream-dark); border-radius: 12px; padding: 28px 32px; margin-top: 48px; text-align: center;">
+        <p style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 8px;">You're live! 🎉</p>
+        <p style="color: var(--brown-mid); font-size: 0.95rem; margin: 0;">Your website is now running on your own Ubuntu Server. You've completed the full setup guide.</p>
+      </div>
+
+      <!-- Pagination -->
+      <div class="guide-pagination">
+        <a href="aapanel.html">&larr; Install aaPanel</a>
+        <a href="index.html">Back to Home &rarr;</a>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <span class="brand-icon">⬡</span> ServerGuide &mdash; A practical guide to self-hosted web servers.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
