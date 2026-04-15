@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Configure Ubuntu Server — ServerGuide</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" type="image/x-icon" href="pics/favicon.png"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top site-nav">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <span class="brand-icon">⬡</span> ServerGuide
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="ventoy.html">Ventoy</a></li>
+          <li class="nav-item"><a class="nav-link" href="ubuntu.html">Ubuntu Server</a></li>
+          <li class="nav-item"><a class="nav-link active" href="configuration.html">Configuration</a></li>
+          <li class="nav-item"><a class="nav-link" href="aapanel.html">aaPanel</a></li>
+          <li class="nav-item"><a class="nav-link" href="upload.html">Upload Site</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="guide-layout">
+
+    <!-- Sidebar -->
+    <aside class="guide-sidebar">
+      <span class="sidebar-label">On this page</span>
+      <ul class="sidebar-nav">
+        <li><a href="#tools" class="active">Install Useful Tools</a></li>
+        <li><a href="#verify">Verify Installation</a></li>
+        <li><a href="#network">Find Network Interface</a></li>
+        <li><a href="#netplan">Static IP & Netplan</a></li>
+        <li><a href="#ssh">Enable SSH</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="guide-content">
+      <span class="guide-page-label">Step 03</span>
+      <h1 class="guide-page-title">Configure Ubuntu Server</h1>
+      <p class="guide-page-intro">After Ubuntu Server is installed and rebooted, prepare it for aaPanel by installing a few useful tools, assigning a static IP, and making sure SSH is ready. This step takes around 15 minutes.</p>
+
+      <!-- Step 1 -->
+      <div class="step-block" id="tools">
+        <div class="step-badge">1</div>
+        <div class="step-body">
+          <h3>Install Useful Tools</h3>
+          <p>Install a few standard utilities you'll use while managing the server:</p>
+          <ul style="color: var(--brown-mid); font-size: 0.95rem; padding-left: 1.2rem;">
+            <li><code>curl</code> and <code>wget</code> for downloading files</li>
+            <li><code>net-tools</code> for network diagnostics like <code>ifconfig</code></li>
+            <li><code>htop</code> for live system monitoring</li>
+            <li><code>nano</code> and <code>vim</code> for text editing</li>
+          </ul>
+          <pre><code>sudo apt install -y curl wget net-tools htop nano vim</code></pre>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 2 -->
+      <div class="step-block" id="verify">
+        <div class="step-badge">2</div>
+        <div class="step-body">
+          <h3>Verify Installation</h3>
+          <p>Check that the server is running the expected kernel and architecture:</p>
+          <pre><code>uname -a</code></pre>
+          <p>You should see output similar to <code>Linux webserver ... 6.8.0-... #1 SMP ... x86_64 GNU/Linux</code>.</p>
+          <div class="callout callout-tip">
+            <div class="callout-title">Tip</div>
+            If the command returns the kernel and architecture you expect, the base install is healthy and ready for network configuration.
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 3 -->
+      <div class="step-block" id="network">
+        <div class="step-badge">3</div>
+        <div class="step-body">
+          <h3>Find Your Network Interface</h3>
+          <p>List your interfaces so you know which one to configure with a static IP:</p>
+          <pre><code>ip link show</code></pre>
+          <p>Look for names like <code>eth0</code>, <code>ens0</code>, or <code>ens3</code>. Do not use <code>lo</code>, which is the localhost interface.</p>
+          <div class="callout callout-tip">
+            <div class="callout-title">Tip</div>
+            Use the interface name shown here in the Netplan config in the next step.
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 4 -->
+      <div class="step-block" id="netplan">
+        <div class="step-badge">4</div>
+        <div class="step-body">
+          <h3>Configure a Static IP Address</h3>
+          <p>Create or edit the Netplan configuration file:</p>
+          <pre><code>sudo nano /etc/netplan/99-custom-net.yaml</code></pre>
+          <pre><code>network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens3:
+      dhcp4: no
+      addresses:
+        - 192.168.1.100/24
+      gateway4: 192.168.1.1
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]</code></pre>
+          <p><code>192.168.1.100/24</code> is your static IP, <code>192.168.1.1</code> is your gateway or router IP, and Google DNS is used for name resolution. Replace <code>ens3</code> with the interface name from the previous step if yours is different.</p>
+          <p>Apply the configuration and verify that the address is assigned:</p>
+          <pre><code>sudo netplan apply
+ip addr show ens3
+ping -c 4 8.8.8.8</code></pre>
+          <div class="callout callout-warn">
+            <div class="callout-title">Warning</div>
+            A wrong Netplan file can disconnect your network. Keep local access available while you test the new configuration.
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <!-- Step 5 -->
+      <div class="step-block has-media" id="ssh">
+        <div class="step-badge">5</div>
+        <div class="step-body">
+          <h3>Enable and Verify SSH</h3>
+          <p>Make sure SSH is running so you can manage the server remotely:</p>
+          <pre><code>sudo systemctl enable --now ssh
+sudo systemctl status ssh</code></pre>
+          <p>You want to see <strong>active (running)</strong> in the service status. If it is not active, start it again and check for errors before moving on.</p>
+          <div class="callout callout-tip">
+            <div class="callout-title">Tip</div>
+            Once SSH is working, you can disconnect the monitor and continue administering the server from your main computer.
+          </div>
+        </div>
+        <div class="step-media-panel">
+          <figure class="step-media">
+            <img src="pics/config/enable-ssh.png" alt="Ubuntu terminal showing ssh service enabled and active running" class="step-image" loading="lazy">
+            <figcaption class="step-caption">Enable SSH and confirm the service is active before installing aaPanel.</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="guide-pagination">
+        <a href="ubuntu.html">&larr; Install Ubuntu Server</a>
+        <a href="aapanel.html">Next: Install aaPanel &rarr;</a>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <span class="brand-icon">⬡</span> ServerGuide &mdash; A practical guide to self-hosted web servers.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="site.js"></script>
+</body>
+</html>
