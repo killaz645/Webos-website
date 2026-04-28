@@ -26,7 +26,6 @@
           <li class="nav-item"><a class="nav-link" href="ventoy.html">Ventoy</a></li>
           <li class="nav-item"><a class="nav-link" href="ubuntu.html">Ubuntu Server</a></li>
           <li class="nav-item"><a class="nav-link" href="configuration.html">Configuration</a></li>
-          <li class="nav-item"><a class="nav-link" href="aapanel.html">aaPanel</a></li>
           <li class="nav-item"><a class="nav-link active" href="upload.html">Upload Site</a></li>
         </ul>
       </div>
@@ -40,7 +39,7 @@
       <span class="sidebar-label">On this page</span>
       <ul class="sidebar-nav">
         <li><a href="#methods" class="active">Upload Methods</a></li>
-        <li><a href="#file-manager">aaPanel File Manager</a></li>
+        <li><a href="#file-manager">Web File Manager</a></li>
         <li><a href="#sftp">Upload via SFTP</a></li>
         <li><a href="#permissions">File Permissions</a></li>
         <li><a href="#test">Test Your Site</a></li>
@@ -52,7 +51,7 @@
     <main class="guide-content">
       <span class="guide-page-label">Step 05</span>
       <h1 class="guide-page-title">Upload Your Website</h1>
-      <p class="guide-page-intro">With aaPanel configured and your site created, you're ready to upload your website files and go live. There are two main ways to do this — the aaPanel file manager and SFTP. This step takes around 15 minutes.</p>
+      <p class="guide-page-intro">With your site created, you're ready to upload your website files and go live. There are two main ways to do this — a web file manager and SFTP. This step takes around 15 minutes.</p>
 
       <!-- Step 1 -->
       <div class="step-block" id="methods">
@@ -61,7 +60,7 @@
           <h3>Choosing an Upload Method</h3>
           <p>You have two main options for getting your files onto the server:</p>
           <ul style="color: var(--brown-mid); font-size: 0.95rem; padding-left: 1.2rem; margin-bottom: 12px;">
-            <li><strong>aaPanel File Manager</strong> — good for small uploads or quick edits directly in the browser</li>
+            <li><strong>Web File Manager</strong> — good for small uploads or quick edits directly in the browser</li>
             <li><strong>SFTP client</strong> — better for larger sites, drag-and-drop uploads, and ongoing file management</li>
           </ul>
           <div class="callout callout-tip">
@@ -77,13 +76,13 @@
       <div class="step-block" id="file-manager">
         <div class="step-badge">2</div>
         <div class="step-body">
-          <h3>Upload via aaPanel File Manager</h3>
-          <p>In aaPanel, click <strong>Files</strong> in the left sidebar. Navigate to your site's root directory:</p>
+          <h3>Upload via Web File Manager</h3>
+          <p>In your server's file manager, click <strong>Files</strong> (or open the file manager in your hosting control panel). Navigate to your site's root directory:</p>
           <pre><code>/www/wwwroot/your-domain.com</code></pre>
           <p>Click the <strong>Upload</strong> button in the toolbar. You can upload individual files or a <code>.zip</code> archive. If you upload a zip, right-click it afterward and select <strong>Decompress</strong> to extract it in place.</p>
           <div class="callout callout-warn">
             <div class="callout-title">Warning</div>
-            Make sure to delete or replace the default <code>index.html</code> placeholder file that aaPanel creates when you set up the site, otherwise it will appear instead of your website.
+            Make sure to delete or replace the default <code>index.html</code> placeholder file that some control panels create when you set up the site, otherwise it will appear instead of your website.
           </div>
         </div>
       </div>
@@ -135,7 +134,7 @@ sudo find /www/wwwroot/your-domain.com -type d -exec chmod 755 {} \;</code></pre
         <div class="step-body">
           <h3>Test Your Site</h3>
           <p>Open a browser and navigate to your server's IP address or domain name. You should see your website load.</p>
-          <p>If you see a blank page or an error, check the Nginx error log in aaPanel under <strong>Website → your site → Error log</strong>, or via the terminal:</p>
+          <p>If you see a blank page or an error, check the Nginx error log in your control panel under the site's error log, or via the terminal:</p>
           <pre><code>sudo tail -f /www/wwwlogs/your-domain.com.error.log</code></pre>
           <div class="callout callout-tip">
             <div class="callout-title">Tip</div>
@@ -151,28 +150,31 @@ sudo find /www/wwwroot/your-domain.com -type d -exec chmod 755 {} \;</code></pre
         <div class="step-badge">6</div>
         <div class="step-body">
           <h3>Enable HTTPS with a Free SSL Certificate</h3>
-          <p>To serve your site over HTTPS, aaPanel makes it easy with Let's Encrypt. In the aaPanel dashboard, go to <strong>Website</strong>, click on your site, then open the <strong>SSL</strong> tab.</p>
-          <p>Select <strong>Let's Encrypt</strong>, enter your domain's email address, and click <strong>Apply</strong>. aaPanel will automatically obtain and install a free SSL certificate and configure Nginx to redirect HTTP to HTTPS.</p>
+          <p>To serve your site over HTTPS, many control panels provide Let's Encrypt integration. Alternatively, you can use Certbot to obtain a certificate from Let's Encrypt via the command line.</p>
+          <p>Using Certbot with Nginx typically looks like this:</p>
+          <pre><code>sudo apt update
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com</code></pre>
           <div class="callout callout-warn">
             <div class="callout-title">Warning</div>
             Let's Encrypt only works with a real domain name pointed at your server's public IP. It won't work with a bare IP address or a local network address.
           </div>
           <div class="callout callout-tip">
             <div class="callout-title">Tip</div>
-            aaPanel automatically renews Let's Encrypt certificates before they expire. You don't need to do anything to keep HTTPS working.
+            Many control panels automatically renew Let's Encrypt certificates before they expire. If using Certbot, automatic renewal is configured by a systemd timer.
           </div>
         </div>
       </div>
 
       <!-- All done -->
       <div style="background: var(--accent-light); border: 1px solid var(--cream-dark); border-radius: 12px; padding: 28px 32px; margin-top: 48px; text-align: center;">
-        <p style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 8px;">You're live! 🎉</p>
+        <p style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 8px;">You're live! </p>
         <p style="color: var(--brown-mid); font-size: 0.95rem; margin: 0;">Your website is now running on your own Ubuntu Server. You've completed the full setup guide.</p>
       </div>
 
       <!-- Pagination -->
       <div class="guide-pagination">
-        <a href="aapanel.html">&larr; Install aaPanel</a>
+        <a href="configuration.html">&larr; Configuration</a>
         <a href="index.html">Back to Home &rarr;</a>
       </div>
 

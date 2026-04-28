@@ -26,7 +26,6 @@
           <li class="nav-item"><a class="nav-link" href="ventoy.html">Ventoy</a></li>
           <li class="nav-item"><a class="nav-link" href="ubuntu.html">Ubuntu Server</a></li>
           <li class="nav-item"><a class="nav-link active" href="configuration.html">Configuration</a></li>
-          <li class="nav-item"><a class="nav-link" href="aapanel.html">aaPanel</a></li>
           <li class="nav-item"><a class="nav-link" href="upload.html">Upload Site</a></li>
         </ul>
       </div>
@@ -44,14 +43,21 @@
         <li><a href="#network">Find Network Interface</a></li>
         <li><a href="#netplan">Static IP & Netplan</a></li>
         <li><a href="#ssh">Enable SSH</a></li>
-      </ul>
+          <li><a href="#dhcp">DHCP Server (ISC)</a></li>
+          <li><a href="#tcpip">TCP/IP Verification</a></li>
+          <li><a href="#samba">Samba File Sharing</a></li>
+          <li><a href="#dnsmasq">Local DNS (dnsmasq)</a></li>
+          <li><a href="#squid">Squid Proxy Server</a></li>
+          <li><a href="#demo">Demonstration & Testing</a></li>
+          <li><a href="#troubleshoot">Troubleshooting</a></li>
+        </ul>
     </aside>
 
     <!-- Main content -->
     <main class="guide-content">
       <span class="guide-page-label">Step 03</span>
       <h1 class="guide-page-title">Configure Ubuntu Server</h1>
-      <p class="guide-page-intro">After Ubuntu Server is installed and rebooted, prepare it for aaPanel by installing a few useful tools, assigning a static IP, and making sure SSH is ready. This step takes around 15 minutes.</p>
+      <p class="guide-page-intro">After Ubuntu Server is installed and rebooted, prepare it for hosting by installing a few useful tools, assigning a static IP, and making sure SSH is ready. This page also covers DHCP, Samba, local DNS (dnsmasq), and Squid proxy setup for a complete multi-service environment.</p>
 
       <!-- Step 1 -->
       <div class="step-block" id="tools">
@@ -92,13 +98,21 @@
       <div class="step-block" id="network">
         <div class="step-badge">3</div>
         <div class="step-body">
-          <h3>Find Your Network Interface</h3>
-          <p>List your interfaces so you know which one to configure with a static IP:</p>
+          <h3>Network Configuration — Understanding Your Network Setup</h3>
+          <p>This guide assumes a dual-NIC setup:</p>
+          <ul style="color: var(--brown-mid); font-size: 0.95rem; padding-left: 1.2rem; margin-bottom: 12px;">
+            <li><strong>enp1s0 (or similar)</strong>: Internet connection (to main access point or router)</li>
+            <li><strong>enp2s0 (or similar)</strong>: Local network (to switch for DHCP clients)</li>
+          </ul>
+          <p>Step 1: Identify your network interfaces:</p>
           <pre><code>ip link show</code></pre>
-          <p>Look for names like <code>eth0</code>, <code>ens0</code>, or <code>ens3</code>. Do not use <code>lo</code>, which is the localhost interface.</p>
+          <p>You should see output such as:</p>
+          <pre><code>2: enp1s0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; ...
+3: enp2s0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; ...</code></pre>
+          <p>Note your interface names — they may be <code>ens0</code>, <code>eth0</code>, or similar.</p>
           <div class="callout callout-tip">
-            <div class="callout-title">Tip</div>
-            Use the interface name shown here in the Netplan config in the next step.
+            <div class="callout-title">Important</div>
+            Replace interface names below with the ones shown by <code>ip link show</code>. Keep local console access available while you test changes.
           </div>
         </div>
       </div>
@@ -109,28 +123,47 @@
       <div class="step-block" id="netplan">
         <div class="step-badge">4</div>
         <div class="step-body">
-          <h3>Configure a Static IP Address</h3>
-          <p>Create or edit the Netplan configuration file:</p>
-          <pre><code>sudo nano /etc/netplan/99-custom-net.yaml</code></pre>
+          <h3>Configure Static IP with Netplan</h3>
+          <p>Edit the Netplan file (this example uses <code>50-cloud-init.yaml</code>):</p>
+          <pre><code>sudo nano /etc/netplan/50-cloud-init.yaml</code></pre>
+          <p>Replace the file content with a static configuration — update interface names and IPs as needed:</p>
           <pre><code>network:
   version: 2
-  renderer: networkd
+  renderer: NetworkManager
   ethernets:
-    ens3:
-      dhcp4: no
+    enx000ec645df3f:
       addresses:
-        - 192.168.1.100/24
-      gateway4: 192.168.1.1
+        - 192.168.0.105/24
       nameservers:
-        addresses: [8.8.8.8, 8.8.4.4]</code></pre>
-          <p><code>192.168.1.100/24</code> is your static IP, <code>192.168.1.1</code> is your gateway or router IP, and Google DNS is used for name resolution. Replace <code>ens3</code> with the interface name from the previous step if yours is different.</p>
-          <p>Apply the configuration and verify that the address is assigned:</p>
-          <pre><code>sudo netplan apply
-ip addr show ens3
-ping -c 4 8.8.8.8</code></pre>
+        addresses: [8.8.8.8, 8.8.4.4]
+      routes:
+        - to: default
+          via: 192.168.0.1
+      dhcp4: false
+    wlp1s0:
+       addresses:
+        - 192.168.1.1/24
+       dhcp4: false</code></pre>
+          <p><strong>Important</strong>: Replace <code>enx000ec645df3f</code> and <code>wlp1s0</code> with your interface names. Adjust the IP addresses and gateway to match your network. In this example, one interface is the Internet uplink and the other provides the local DHCP network.</p>
+          <p>Save and exit: <strong>Ctrl+X</strong>, then <strong>Y</strong>, then <strong>Enter</strong>.</p>
+          <h4>Fix file permissions</h4>
+          <pre><code>sudo chmod 600 /etc/netplan/00-installer-config.yaml</code></pre>
+          <h4>Apply and validate</h4>
+          <pre><code>sudo netplan apply</code></pre>
+          <h4>Verify interfaces have IPs</h4>
+          <pre><code>ip addr show</code></pre>
+          <p>You should see both interfaces with their configured addresses, for example:</p>
+          <pre><code>2: enp1s0: ...
+    inet 192.168.100.131/24 ...
+3: enp2s0: ...
+    inet 192.168.1.1/24 ...</code></pre>
+          <h4>Test connectivity</h4>
+          <pre><code>ping -c 4 8.8.8.8
+ping -c 4 192.168.100.1</code></pre>
+          <p>If both pings succeed, your uplink and local network are functioning.</p>
           <div class="callout callout-warn">
             <div class="callout-title">Warning</div>
-            A wrong Netplan file can disconnect your network. Keep local access available while you test the new configuration.
+            Mistakes in Netplan can break remote network access. Keep a console or local access method available when testing changes.
           </div>
         </div>
       </div>
@@ -154,15 +187,160 @@ sudo systemctl status ssh</code></pre>
         <div class="step-media-panel">
           <figure class="step-media">
             <img src="pics/config/enable-ssh.png" alt="Ubuntu terminal showing ssh service enabled and active running" class="step-image" loading="lazy">
-            <figcaption class="step-caption">Enable SSH and confirm the service is active before installing aaPanel.</figcaption>
+              <figcaption class="step-caption">Enable SSH and confirm the service is active before proceeding.</figcaption>
           </figure>
         </div>
       </div>
 
+        <hr class="step-divider">
+
+        <!-- DHCP Server -->
+        <div class="step-block" id="dhcp">
+          <div class="step-badge">6</div>
+          <div class="step-body">
+            <h3>DHCP Server Setup (ISC DHCP)</h3>
+            <p>Install the ISC DHCP server and configure a subnet for local clients.</p>
+            <pre><code>sudo apt install -y isc-dhcp-server
+  sudo nano /etc/dhcp/dhcpd.conf</code></pre>
+            <p>Add (or replace) a subnet block at the end of <code>/etc/dhcp/dhcpd.conf</code>:</p>
+            <pre><code>subnet 192.168.1.0 netmask 255.255.255.0 {
+    range 192.168.1.50 192.168.1.200;
+    option routers 192.168.1.1;
+    option domain-name-servers 8.8.8.8, 8.8.4.4;
+    default-lease-time 600;
+    max-lease-time 7200;
+  }</code></pre>
+            <p>Set the server interface in <code>/etc/default/isc-dhcp-server</code>:</p>
+            <pre><code>INTERFACESv4="enp2s0"</code></pre>
+            <p>Start and enable the service:</p>
+            <pre><code>sudo systemctl start isc-dhcp-server
+  sudo systemctl enable isc-dhcp-server
+  sudo systemctl status isc-dhcp-server</code></pre>
+          </div>
+        </div>
+
+        <hr class="step-divider">
+
+        <!-- TCP/IP Verification -->
+        <div class="step-block" id="tcpip">
+          <div class="step-badge">7</div>
+          <div class="step-body">
+            <h3>TCP/IP Verification</h3>
+            <p>Run these checks to confirm network and service availability:</p>
+            <pre><code>ip addr show
+  ip route show
+  sudo ss -tlnp | grep LISTEN
+  ping -c 4 8.8.8.8</code></pre>
+            <p>Confirm expected services are listening (e.g., 22, 67, 80, 3128).</p>
+          </div>
+        </div>
+
+        <hr class="step-divider">
+
+        <!-- Samba -->
+        <div class="step-block" id="samba">
+          <div class="step-badge">8</div>
+          <div class="step-body">
+            <h3>Samba File Sharing</h3>
+            <pre><code>sudo apt install -y samba samba-common-bin
+  sudo mkdir -p /srv/samba/public
+  sudo chmod -R 777 /srv/samba/public
+  sudo bash -c 'echo "Test file from Samba server" > /srv/samba/public/test.txt'</code></pre>
+            <p>Add this share to <code>/etc/samba/smb.conf</code>:</p>
+            <pre><code>[public]
+     comment = Public Share
+     path = /srv/samba/public
+     browsable = yes
+     writable = yes
+     guest ok = yes
+     public = yes
+     force user = nobody</code></pre>
+            <pre><code>sudo systemctl restart smbd nmbd
+  sudo systemctl enable smbd nmbd
+  sudo systemctl status smbd</code></pre>
+          </div>
+        </div>
+
+        <hr class="step-divider">
+
+        <!-- dnsmasq -->
+        <div class="step-block" id="dnsmasq">
+          <div class="step-badge">9</div>
+          <div class="step-body">
+            <h3>Local DNS (dnsmasq)</h3>
+            <p>Disable systemd-resolved, point <code>/etc/resolv.conf</code> to localhost, and install dnsmasq.</p>
+            <pre><code>sudo systemctl stop systemd-resolved
+  sudo systemctl disable systemd-resolved
+  sudo rm /etc/resolv.conf
+  sudo bash -c 'echo "nameserver 127.0.0.1" > /etc/resolv.conf'
+  sudo chattr +i /etc/resolv.conf
+  sudo apt install -y dnsmasq</code></pre>
+            <p>Edit <code>/etc/dnsmasq.conf</code> and add site mappings, then start dnsmasq:</p>
+            <pre><code>address=/site1.local/192.168.100.131
+  server=8.8.8.8
+  cache-size=150
+  sudo systemctl start dnsmasq
+  sudo systemctl enable dnsmasq</code></pre>
+          </div>
+        </div>
+
+        <hr class="step-divider">
+
+        <!-- Squid -->
+        <div class="step-block" id="squid">
+          <div class="step-badge">10</div>
+          <div class="step-body">
+            <h3>Squid Proxy Server</h3>
+            <pre><code>sudo apt install -y squid squid-common
+  sudo cp /etc/squid/squid.conf /etc/squid/squid.conf.backup
+  sudo nano /etc/squid/squid.conf</code></pre>
+            <p>Example minimal config (paste into <code>/etc/squid/squid.conf</code>):</p>
+            <pre><code>http_port 3128
+  acl localnet src 192.168.0.0/16
+  acl Safe_ports port 80 443 8080 8888
+  http_access allow localnet
+  http_access allow localhost
+  http_access deny all
+  cache_dir ufs /var/spool/squid 100 16 256
+  access_log /var/log/squid/access.log squid</code></pre>
+            <pre><code>sudo systemctl restart squid
+  sudo systemctl enable squid
+  sudo systemctl status squid</code></pre>
+          </div>
+        </div>
+
+        <hr class="step-divider">
+
+        <!-- Demo -->
+        <div class="step-block" id="demo">
+          <div class="step-badge">11</div>
+          <div class="step-body">
+            <h3>Demonstration & Testing</h3>
+            <p>Save the supplied verification script as <code>~/demo-check.sh</code>, make it executable, and run it before your demo.</p>
+            <pre><code>chmod +x ~/demo-check.sh
+  bash ~/demo-check.sh</code></pre>
+            <p>Recommended demo order: Network → DHCP → DNS → Web sites → Samba → Squid.</p>
+          </div>
+        </div>
+
+        <hr class="step-divider">
+
+        <!-- Troubleshoot -->
+        <div class="step-block" id="troubleshoot">
+          <div class="step-badge">12</div>
+          <div class="step-body">
+            <h3>Troubleshooting & Quick Commands</h3>
+            <pre><code>sudo systemctl status ssh nginx isc-dhcp-server smbd dnsmasq squid
+  sudo nginx -t
+  sudo dhcpd -t -cf /etc/dhcp/dhcpd.conf
+  sudo ss -tlnp | grep -E "(ssh|nginx|dhcpd|smbd|dnsmasq|squid)"</code></pre>
+          </div>
+        </div>
+
       <!-- Pagination -->
       <div class="guide-pagination">
         <a href="ubuntu.html">&larr; Install Ubuntu Server</a>
-        <a href="aapanel.html">Next: Install aaPanel &rarr;</a>
+        <a href="upload.html">Next: Upload Site &rarr;</a>
       </div>
 
     </main>
