@@ -75,7 +75,86 @@
         </div>
       </div>
 
-      <hr class="step-divider">
+        <hr class="step-divider">
+
+        <!-- Validation Checklist -->
+        <div class="step-block" id="validation">
+          <div class="step-badge">11</div>
+          <div class="step-body">
+            <h3>Validation Checklist</h3>
+            <p>Run these checks after configuration to confirm the environment is operating:</p>
+            <pre><code>ip addr show
+ip route show
+nmcli dev status
+nmcli con show --active
+systemctl status ssh isc-dhcp-server dnsmasq smbd nmbd nginx squid
+ss -tulpn | egrep ':(53|67|80|139|443|3128|8443|445)\b'
+dig @127.0.0.1 test.webos +short
+curl -x http://192.168.1.1:3128 -I http://example.com</code></pre>
+          </div>
+        </div>
+
+        <hr class="step-divider">
+
+        <!-- Routing & NAT -->
+        <div class="step-block" id="routing">
+          <div class="step-badge">7</div>
+          <div class="step-body">
+            <h3>Enable Routing and NAT</h3>
+            <p>If LAN clients need internet access through the server, enable IPv4 forwarding and add a UFW NAT rule.</p>
+            <h4>Enable IPv4 forwarding</h4>
+            <pre><code>sudo sysctl -w net.ipv4.ip_forward=1
+sudo sh -c 'printf "net.ipv4.ip_forward=1\n" &gt; /etc/sysctl.d/99-router.conf'
+sudo sysctl --system</code></pre>
+            <h4>Add UFW NAT (backup before editing)</h4>
+            <pre><code>sudo cp /etc/ufw/before.rules /etc/ufw/before.rules.backup
+# Add the block below near the top of /etc/ufw/before.rules before the *filter section
+cat <<'EOF' | sudo tee /tmp/ufw-nat-block
+*nat
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -s 192.168.1.0/24 -o enp1s0 -j MASQUERADE
+COMMIT
+EOF
+sudo bash -c 'cat /tmp/ufw-nat-block | sed -n "1,$p" >> /etc/ufw/before.rules'
+
+sudo ufw route allow in on enp2s0 out on enp1s0
+sudo ufw reload
+sudo ufw status verbose</code></pre>
+            <div class="callout callout-tip">
+              <div class="callout-title">Warning</div>
+              Be careful when changing firewall and routing rules on a remote server — keep local console access available while testing.
+            </div>
+          </div>
+        </div>
+
+        <!-- NetworkManager section (preferred) -->
+        <div class="step-block" id="network-manager">
+          <div class="step-badge">4a</div>
+          <div class="step-body">
+            <h3>Configure Interfaces with NetworkManager (nmcli)</h3>
+            <p>This build prefers <code>NetworkManager</code> for runtime interface management. Use <code>nmcli</code> to create and bring up connections for <code>enp1s0</code> (uplink) and <code>enp2s0</code> (LAN).</p>
+            <h4>Ensure NetworkManager is running</h4>
+            <pre><code>sudo systemctl enable --now NetworkManager
+  nmcli device status</code></pre>
+            <h4>Create the uplink (DHCP) on <code>enp1s0</code></h4>
+            <pre><code>sudo nmcli con add type ethernet ifname enp1s0 con-name uplink ipv4.method auto ipv6.method ignore</code></pre>
+            <h4>Create the LAN connection on <code>enp2s0</code> (static)</h4>
+            <pre><code>sudo nmcli con add type ethernet ifname enp2s0 con-name lan ipv4.method manual ipv4.addresses 192.168.1.1/24 ipv4.never-default yes ipv6.method ignore
+  sudo nmcli con mod lan connection.autoconnect yes</code></pre>
+            <h4>Bring the connections up</h4>
+            <pre><code>sudo nmcli con up uplink
+  sudo nmcli con up lan</code></pre>
+            <h4>Verify</h4>
+            <pre><code>ip addr show
+  ip route show
+  nmcli dev status
+  nmcli con show --active</code></pre>
+            <div class="callout callout-tip">
+              <div class="callout-title">Important</div>
+              Expected: <code>enp1s0</code> has the upstream IP and default route; <code>enp2s0</code> has <code>192.168.1.1/24</code> and is the LAN gateway for clients.
+            </div>
+          </div>
+        </div>
 
       <!-- Step 2 -->
       <div class="step-block" id="verify">
@@ -216,6 +295,37 @@ sudo systemctl status ssh</code></pre>
             <pre><code>sudo systemctl start isc-dhcp-server
   sudo systemctl enable isc-dhcp-server
   sudo systemctl status isc-dhcp-server</code></pre>
+            <p><strong>Recommended: backup and replace full DHCP config</strong></p>
+            <pre><code>sudo cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.backup
+sudo tee /etc/dhcp/dhcpd.conf &gt; /dev/null <<'EOF'
+option domain-name "webos";
+option domain-name-servers 192.168.1.1;
+default-lease-time 600;
+max-lease-time 7200;
+ddns-update-style none;
+authoritative;
+
+subnet 192.168.1.0 netmask 255.255.255.0 {
+  range 192.168.1.50 192.168.1.200;
+  option routers 192.168.1.1;
+  option subnet-mask 255.255.255.0;
+  option broadcast-address 192.168.1.255;
+  option domain-name "webos";
+  option domain-name-servers 192.168.1.1;
+}
+EOF
+
+sudo cp /etc/default/isc-dhcp-server /etc/default/isc-dhcp-server.backup
+sudo bash -c 'cat > /etc/default/isc-dhcp-server <<"EOF"
+INTERFACESv4="enp2s0"
+INTERFACESv6=""
+EOF'
+
+sudo dhcpd -t -cf /etc/dhcp/dhcpd.conf
+sudo systemctl restart isc-dhcp-server
+sudo systemctl enable isc-dhcp-server
+sudo systemctl status isc-dhcp-server
+sudo ss -tlnp | grep 67</code></pre>
           </div>
         </div>
 
@@ -258,6 +368,31 @@ sudo systemctl status ssh</code></pre>
             <pre><code>sudo systemctl restart smbd nmbd
   sudo systemctl enable smbd nmbd
   sudo systemctl status smbd</code></pre>
+            <p><strong>Optional: full smb.conf example and backup</strong></p>
+            <pre><code>sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
+    sudo tee /etc/samba/smb.conf &gt; /dev/null <<'EOF'
+    [global]
+      workgroup = WORKGROUP
+      server string = webos
+      map to guest = Bad User
+      security = user
+      guest account = nobody
+      disable spoolss = yes
+
+    [public]
+      comment = Public Share
+      path = /srv/samba/public
+      browsable = yes
+      writable = yes
+      guest ok = yes
+      read only = no
+      force user = nobody
+    EOF
+
+    sudo testparm
+    sudo systemctl restart smbd nmbd
+    sudo systemctl enable smbd nmbd
+    sudo systemctl status smbd</code></pre>
           </div>
         </div>
 
@@ -275,12 +410,28 @@ sudo systemctl status ssh</code></pre>
   sudo bash -c 'echo "nameserver 127.0.0.1" > /etc/resolv.conf'
   sudo chattr +i /etc/resolv.conf
   sudo apt install -y dnsmasq</code></pre>
-            <p>Edit <code>/etc/dnsmasq.conf</code> and add site mappings, then start dnsmasq:</p>
-            <pre><code>address=/site1.local/192.168.100.131
-  server=8.8.8.8
-  cache-size=150
-  sudo systemctl start dnsmasq
-  sudo systemctl enable dnsmasq</code></pre>
+            <p>Edit <code>/etc/dnsmasq.conf</code> and add site mappings, then start dnsmasq.</p>
+            <pre><code>sudo cp /etc/dnsmasq.conf /etc/dnsmasq.conf.backup
+sudo tee /etc/dnsmasq.conf &gt; /dev/null <<'EOF'
+bind-dynamic
+interface=lo
+interface=enp2s0
+domain=webos
+local=/webos/
+address=/.webos/192.168.1.1
+server=8.8.8.8
+server=8.8.4.4
+EOF
+
+# Start and enable dnsmasq
+sudo systemctl restart dnsmasq
+sudo systemctl enable dnsmasq
+sudo systemctl status dnsmasq
+sudo ss -tlnp | grep 53
+
+# Test DNS
+dig @192.168.1.1 test.webos +short
+dig @192.168.1.1 panel.webos +short</code></pre>
           </div>
         </div>
 
@@ -308,10 +459,33 @@ sudo systemctl status ssh</code></pre>
   sudo systemctl status squid</code></pre>
           </div>
         </div>
+          <hr class="step-divider">
 
-        <hr class="step-divider">
+          <!-- Firewall Rules -->
+          <div class="step-block" id="firewall">
+            <div class="step-badge">10</div>
+            <div class="step-body">
+              <h3>Firewall Rules (UFW)</h3>
+              <p>Allow LAN clients (on <code>enp2s0</code>) to reach the services they need. Adjust as necessary for your environment.</p>
+              <pre><code>sudo ufw allow in on enp2s0 to any port 53 proto udp
+  sudo ufw allow in on enp2s0 to any port 53 proto tcp
+  sudo ufw allow in on enp2s0 to any port 67 proto udp
+  sudo ufw allow in on enp2s0 to any port 80 proto tcp
+  sudo ufw allow in on enp2s0 to any port 443 proto tcp
+  sudo ufw allow in on enp2s0 to any port 8443 proto tcp
+  sudo ufw allow in on enp2s0 to any port 3128 proto tcp
+  sudo ufw allow in on enp2s0 to any port 22 proto tcp
+  sudo ufw allow in on enp2s0 to any port 139 proto tcp
+  sudo ufw allow in on enp2s0 to any port 445 proto tcp
+  sudo ufw reload
+  sudo ufw enable
+  sudo ufw status verbose</code></pre>
+            </div>
+          </div>
 
-        <!-- Demo -->
+          <hr class="step-divider">
+
+          <!-- Demo -->
         <div class="step-block" id="demo">
           <div class="step-badge">11</div>
           <div class="step-body">
