@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Install CloudPanel — ServerGuide</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" type="image/x-icon" href="pics/favicon.png"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top site-nav">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <span class="brand-icon">⬡</span> ServerGuide
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="ventoy.html">Ventoy</a></li>
+          <li class="nav-item"><a class="nav-link" href="ubuntu.html">Ubuntu Server</a></li>
+          <li class="nav-item"><a class="nav-link active" href="cloudpanel.html">CloudPanel</a></li>
+          <li class="nav-item"><a class="nav-link" href="configuration.html">Configuration</a></li>
+          <li class="nav-item"><a class="nav-link" href="upload.html">Upload Site</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="guide-layout">
+
+    <!-- Sidebar -->
+    <aside class="guide-sidebar">
+      <span class="sidebar-label">On this page</span>
+      <ul class="sidebar-nav">
+        <li><a href="#overview" class="active">Overview</a></li>
+        <li><a href="#prereqs">Prerequisites</a></li>
+        <li><a href="#install">Install CloudPanel</a></li>
+        <li><a href="#firewall">Firewall</a></li>
+        <li><a href="#access">Access & Post-Install</a></li>
+        <li><a href="#verify">Verify</a></li>
+        <li><a href="#troubleshoot">Troubleshooting</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="guide-content">
+      <span class="guide-page-label">CloudPanel</span>
+      <h1 class="guide-page-title">Install CloudPanel on Ubuntu Server 24.04</h1>
+      <p class="guide-page-intro">CloudPanel provides a lightweight hosting control panel for managing websites, databases, and SSL. Follow these steps to install the Community Edition on a fresh Ubuntu Server 24.04 LTS machine.</p>
+
+      <div class="step-block" id="overview">
+        <div class="step-badge">1</div>
+        <div class="step-body">
+          <h3>Overview</h3>
+          <p>CloudPanel installs and manages Nginx, PHP, and MariaDB (or MySQL) and exposes a web UI on <strong>port 8443</strong>. The installer automates dependencies and performs recommended optimizations for production use.</p>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <div class="step-block" id="prereqs">
+        <div class="step-badge">2</div>
+        <div class="step-body">
+          <h3>Prerequisites</h3>
+          <p>On a fresh Ubuntu Server 24.04 install, ensure the system is updated and has a reachable IP or domain. Recommended minimums: 1 vCPU, 1 GB RAM (2 GB+ recommended for production).</p>
+          <pre><code>sudo apt update
+sudo apt upgrade -y
+sudo apt install -y curl wget gnupg2 ca-certificates</code></pre>
+          <p>Optional but recommended: set a sensible hostname and ensure ports 80, 443, and 8443 are available.</p>
+          <pre><code>sudo hostnamectl set-hostname webos
+hostnamectl && ip addr show</code></pre>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <div class="step-block" id="install">
+        <div class="step-badge">3</div>
+        <div class="step-body">
+          <h3>Install CloudPanel (Community Edition)</h3>
+          <p>Run the official installer script. The script will prompt for confirmation and then install required components.</p>
+          <pre><code># fetch and run the CloudPanel installer
+curl -sSL https://installer.cloudpanel.io/ce/v2/install.sh | sudo bash</code></pre>
+          <p>Notes:</p>
+          <ul style="color: var(--brown-mid); font-size: 0.95rem; padding-left: 1.2rem;">
+            <li>The installer may ask for a domain or IP to configure TLS — you can use the server IP (for local networks) or a DNS name.</li>
+            <li>Installer sets up Nginx, PHP, MariaDB and the CloudPanel service.</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <div class="step-block" id="firewall">
+        <div class="step-badge">4</div>
+        <div class="step-body">
+          <h3>Open Firewall Ports</h3>
+          <p>Allow HTTPS and CloudPanel's admin port through UFW (adjust interface as needed):</p>
+          <pre><code>sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 8443/tcp
+sudo ufw reload
+sudo ufw status verbose</code></pre>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <div class="step-block" id="access">
+        <div class="step-badge">5</div>
+        <div class="step-body">
+          <h3>Accessing CloudPanel</h3>
+          <p>When installation completes, open the panel in your browser at:</p>
+          <pre><code>https://192.168.1.1:8443/</code></pre>
+          <p>Replace <code>192.168.1.1</code> with your server IP or hostname. On first visit you will create the admin user and complete initial setup.</p>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <div class="step-block" id="verify">
+        <div class="step-badge">6</div>
+        <div class="step-body">
+          <h3>Verify Installation</h3>
+          <pre><code>sudo systemctl status cloudpanel
+sudo systemctl status nginx
+ss -tlnp | grep -E ":(80|443|8443)\b"
+sudo journalctl -u cloudpanel -n 100</code></pre>
+          <p>Confirm the panel is reachable and Nginx is serving sites as expected.</p>
+        </div>
+      </div>
+
+      <hr class="step-divider">
+
+      <div class="step-block" id="troubleshoot">
+        <div class="step-badge">7</div>
+        <div class="step-body">
+          <h3>Troubleshooting</h3>
+          <p>Common checks if the installer fails or the panel is unreachable:</p>
+          <pre><code># Check installer logs
+sudo journalctl -u cloudpanel -b
+
+# Validate nginx config
+sudo nginx -t
+
+# Check open ports
+ss -tlnp | egrep ':(80|443|8443)\b'
+
+# Re-run installer if necessary (it is idempotent in most steps)
+curl -sSL https://installer.cloudpanel.io/ce/v2/install.sh | sudo bash</code></pre>
+        </div>
+      </div>
+
+      <div class="guide-pagination">
+        <a href="ubuntu.html">&larr; Install Ubuntu Server</a>
+        <a href="configuration.html">Next: Configuration &rarr;</a>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <span class="brand-icon">⬡</span> ServerGuide &mdash; A practical guide to self-hosted web servers.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="site.js"></script>
+</body>
+</html>
